@@ -25,12 +25,6 @@ def login_page():
             else:
                 st.error("Invalid username or password")
         
-        # Display credentials for testing
-        st.markdown("---")
-        st.markdown("#### Test Credentials:")
-        st.markdown(f"Username: `{USERNAME}`")
-        st.markdown(f"Password: `{PASSWORD}`")
-
 
 def main():
     if not st.session_state.authenticated:
