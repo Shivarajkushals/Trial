@@ -565,7 +565,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("C:\\Users\\User\\Downloads\\Python\\Test\\Image samples\\Colored Sticker.png", use_column_width=True)
+    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Colored%20Sticker.png", use_column_width=True)
 
     if st.session_state.show_generate_pdf_action2:
         if st.button("Generate PDF for Sticker 2", key="generate_pdf_button_2"):
