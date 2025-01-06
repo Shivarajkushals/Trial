@@ -96,7 +96,7 @@ def save_to_pdf(data):
     pdf_buffer = BytesIO()
     
     # Register the custom TTF font
-    font_path = "https://github.com/Shivarajkushals/Trial/blob/main/Mitr-SemiBold.ttf"  # Provide the correct path to your .ttf file
+    font_path = "https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Mitr-SemiBold.ttf"  # Provide the correct path to your .ttf file
     pdfmetrics.registerFont(TTFont('Mitr-SemiBold', font_path))  # Register the font
 
     pdf = canvas.Canvas(pdf_buffer, pagesize=landscape(A3))  # Use the BytesIO buffer
@@ -162,7 +162,7 @@ def save_to_pdf1(data):
     pdf_buffer = BytesIO()
     
     # Register the custom TTF font
-    font_path = "https://github.com/Shivarajkushals/Trial/blob/main/Mitr-SemiBold.ttf"  # Provide the correct path to your .ttf file
+    font_path = "https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Mitr-SemiBold.ttf"  # Provide the correct path to your .ttf file
     pdfmetrics.registerFont(TTFont('Mitr-SemiBold', font_path))  # Register the font
 
     pdf = canvas.Canvas(pdf_buffer, pagesize=landscape(A3))  # Use the BytesIO buffer
@@ -244,7 +244,7 @@ def save_to_pdf2(data):
     pdf_buffer = BytesIO()
     
     # Register the custom TTF font
-    font_path = "https://github.com/Shivarajkushals/Trial/blob/main/Mitr-SemiBold.ttf"
+    font_path = "https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Mitr-SemiBold.ttf"
     pdfmetrics.registerFont(TTFont('Mitr-SemiBold', font_path))
 
     # Initialize PDF with A3 landscape
@@ -349,7 +349,7 @@ def save_to_pdf3(data1):
     pdf_buffer = BytesIO()
     
     # Register the font
-    font_path = "https://github.com/Shivarajkushals/Trial/blob/main/Mitr-SemiBold.ttf"
+    font_path = "https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Mitr-SemiBold.ttf"
     pdfmetrics.registerFont(TTFont('Mitr-SemiBold', font_path))
 
     # Initialize PDF with A3 landscape
@@ -419,7 +419,7 @@ def save_to_pdf4(data1):
     pdf_buffer = BytesIO()
     
     # Register the font
-    font_path = "https://github.com/Shivarajkushals/Trial/blob/main/Mitr-SemiBold.ttf"
+    font_path = "https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Mitr-SemiBold.ttf"
     pdfmetrics.registerFont(TTFont('Mitr-SemiBold', font_path))
 
     # Initialize PDF with A3 landscape
@@ -527,7 +527,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Sticker.png", use_container_width=True)
+    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Sticker.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action1:
         if st.button("Generate PDF for Sticker 1", key="generate_pdf_button_1"):
@@ -565,7 +565,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Colored%20Sticker.png", use_container_width=True)
+    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Colored%20Sticker.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action2:
         if st.button("Generate PDF for Sticker 2", key="generate_pdf_button_2"):
@@ -601,7 +601,7 @@ def main():
         st.session_state.show_generate_pdf_action3 = True
         st.session_state.show_generate_pdf_action4 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr%20%2B%20Sticker.png", use_container_width=True)
+    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Qr%20%2B%20Sticker.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action3:
         if st.button("Generate PDF for Sticker 3", key="generate_pdf_button_3"):
@@ -638,7 +638,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = True
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr.png", use_container_width=True)
+    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Qr.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action4:
         if st.button("Generate PDF for Sticker 4", key="generate_pdf_button_4"):
@@ -675,7 +675,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = True
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr%20Alpha.png", use_container_width=True)
+    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Qr%20Alpha.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action5:
         if st.button("Generate PDF for Sticker 5", key="generate_pdf_button_5"):
