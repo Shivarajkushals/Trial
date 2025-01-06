@@ -33,6 +33,16 @@ def login_page():
 
 
 def main():
+    if not st.session_state.authenticated:
+        login_page()
+        return
+    
+    # Add logout button in sidebar
+    if st.sidebar.button("Logout"):
+        st.session_state.authenticated = False
+        st.rerun()
+        
     st.write('Hello world!')
+    
 if __name__ == "__main__":
     main()
