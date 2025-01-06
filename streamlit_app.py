@@ -527,7 +527,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Sticker.png", use_column_width=True)
+    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Sticker.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action1:
         if st.button("Generate PDF for Sticker 1", key="generate_pdf_button_1"):
@@ -565,7 +565,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Colored%20Sticker.png", use_column_width=True)
+    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Colored%20Sticker.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action2:
         if st.button("Generate PDF for Sticker 2", key="generate_pdf_button_2"):
@@ -601,7 +601,7 @@ def main():
         st.session_state.show_generate_pdf_action3 = True
         st.session_state.show_generate_pdf_action4 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr%20%2B%20Sticker.png", use_column_width=True)
+    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr%20%2B%20Sticker.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action3:
         if st.button("Generate PDF for Sticker 3", key="generate_pdf_button_3"):
@@ -638,7 +638,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = True
         st.session_state.show_generate_pdf_action5 = False
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr.png", use_column_width=True)
+    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action4:
         if st.button("Generate PDF for Sticker 4", key="generate_pdf_button_4"):
@@ -675,7 +675,7 @@ def main():
         st.session_state.show_generate_pdf_action4 = False
         st.session_state.show_generate_pdf_action5 = True
         
-    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr%20Alpha.png", use_column_width=True)
+    st.sidebar.image("https://github.com/Shivarajkushals/Trial/blob/main/Qr%20Alpha.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action5:
         if st.button("Generate PDF for Sticker 5", key="generate_pdf_button_5"):
