@@ -36,12 +36,6 @@ def login_page():
                 st.rerun()
             else:
                 st.error("Invalid username or password")
-        
-        # Display credentials for testing
-        st.markdown("---")
-        st.markdown("#### Test Credentials:")
-        st.markdown(f"Username: `{USERNAME}`")
-        st.markdown(f"Password: `{PASSWORD}`")
 
 def mm(value):
     return value * 2.83465
