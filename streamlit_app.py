@@ -501,6 +501,8 @@ def main():
         st.rerun()
     
     st.title("PDF Generator")
+
+    st.subheader("The file expected to load should have a single column of data in first column with a header")
     
     uploaded_files = st.file_uploader("Upload CSV or Excel files", type=["csv", "xlsx"], accept_multiple_files=True)
     
