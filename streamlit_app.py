@@ -13,8 +13,14 @@ from PIL import Image
 import io
 
 # Initialize session state
-if 'authenticated' not in st.session_state:
+if 'initialized' not in st.session_state:
+    st.session_state.initialized = True
     st.session_state.authenticated = False
+    st.session_state.show_generate_pdf_action1 = False
+    st.session_state.show_generate_pdf_action2 = False
+    st.session_state.show_generate_pdf_action3 = False
+    st.session_state.show_generate_pdf_action4 = False
+    st.session_state.show_generate_pdf_action5 = False
 
 # Simple credentials (replace with secure authentication in production)
 USERNAME = "admin"
@@ -497,6 +503,9 @@ def main():
     
     # Add logout button in sidebar
     if st.sidebar.button("Logout"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.session_state.initialized = True
         st.session_state.authenticated = False
         st.rerun()
     
