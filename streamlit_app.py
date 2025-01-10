@@ -386,7 +386,7 @@ def save_to_pdf3(data1):
         pdf.rect(x_offset, y_offset - qr_box_height, qr_box_width, qr_box_height)
         
         # Add QR code
-        qr_image = create_qr_code(unique_id, size_mm=qr_size / mm(1))  # QR code contains the ID number
+        qr_image = create_qr_code(value, size_mm=qr_size / mm(1))  # QR code contains the ID number
         qr_x = x_offset + (qr_box_width - qr_size) / 2
         qr_y = y_offset - qr_box_height + mm(9.5)
         pdf.drawImage(qr_image, qr_x, qr_y, width=qr_size, height=qr_size)
@@ -471,7 +471,7 @@ def save_to_pdf4(data1):
             pdf.drawCentredString(last_letter_x, last_letter_y, last_letter)
         
         # Add QR code
-        qr_image = create_qr_code(unique_id, size_mm=qr_size / mm(1))  # QR code contains the ID number
+        qr_image = create_qr_code(value, size_mm=qr_size / mm(1))  # QR code contains the ID number
         qr_x = x_offset + (qr_box_width - qr_size) / 2
         qr_y = y_offset - qr_box_height + mm(37)
         pdf.drawImage(qr_image, qr_x, qr_y, width=qr_size, height=qr_size)
