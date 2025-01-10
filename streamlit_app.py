@@ -42,7 +42,10 @@ def mm(value):
 
 # Function to read data from a DataFrame for Action 3
 def extract_data_from_dataframe(df):
-    data = {}
+    data = {
+        'split_values': {},    # For split components
+        'original_values': {}  # For intact original values
+    }
     data1 = {}
     unique_id = 1  # Start unique ID from 1
     counter = 1
@@ -55,9 +58,12 @@ def extract_data_from_dataframe(df):
             counter += 1
             unique_id += 1
 
+            # Store the original value
+            data['original_values'][id_str] = value
+                    
+            # Store the split components
             components = value.split('-')
-            # Store the unique ID and the split components
-            data[id_str] = [component.strip() for component in components]  # Strip whitespace
+            data['split_values'][id_str] = [component.strip() for component in components]
 
     return data1, data
 
@@ -110,7 +116,10 @@ def save_to_pdf(data):
 
     pdf.setLineWidth(mm(0.035))  # Set border thickness
 
-    for unique_id, components in data.items():
+    for unique_id in data['split_values'].keys():
+        components = data['split_values'][unique_id]  # Get split components for this ID
+        original_value = data['original_values'][unique_id]
+        
         total_width = len(static_strings) * compartment_width
 
         # Draw background rectangles first
@@ -176,7 +185,10 @@ def save_to_pdf1(data):
 
     pdf.setLineWidth(mm(0.035))  # Set border thickness
 
-    for unique_id, components in data.items():
+    for unique_id in data['split_values'].keys():
+        components = data['split_values'][unique_id]  # Get split components for this ID
+        original_value = data['original_values'][unique_id]
+        
         # Calculate total width of the entity (compartments)
         total_width = len(static_strings) * compartment_width
 
@@ -278,7 +290,10 @@ def save_to_pdf2(data):
     # Set initial line width
     pdf.setLineWidth(mm(0.035))
 
-    for unique_id, components in data.items():
+    for unique_id in data['split_values'].keys():
+        components = data['split_values'][unique_id]  # Get split components for this ID
+        original_value = data['original_values'][unique_id]
+        
         # Check if we need to start a new row
         if x_offset + total_entity_width > page_width - mm(19.40):
             x_offset = x_start
@@ -310,7 +325,7 @@ def save_to_pdf2(data):
             # Add QR code in the first compartment
             if i == 0:
                 # Generate QR code and get ImageReader object
-                qr_image = create_qr_code(unique_id, size_mm=qr_size / mm(1))
+                qr_image = create_qr_code(original_value, size_mm=qr_size / mm(1))
                 # Calculate center position for QR code
                 qr_x = current_x + (width - qr_size) / 2
                 qr_y = y_offset - compartment_height + (compartment_height - qr_size) / 2
