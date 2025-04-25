@@ -810,7 +810,7 @@ def main():
         
     st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Qr.png", use_container_width=True)
 
-    if st.session_state.show_generate_pdf_action4:
+    if st.session_state.show_generate_pdf_action6:
         if st.button("Generate PDF for Sticker 6", key="generate_pdf_button_6"):
             if uploaded_files:
                 data1 = {}
