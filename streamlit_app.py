@@ -800,7 +800,7 @@ def main():
                 st.error("Please upload at least one CSV or Excel file.")
                 
     # Action 6
-    if st.sidebar.button("Sticker 4", key="action4_button"):
+    if st.sidebar.button("Sticker 6", key="action6_button"):
         st.session_state.show_generate_pdf_action1 = False
         st.session_state.show_generate_pdf_action2 = False
         st.session_state.show_generate_pdf_action3 = False
