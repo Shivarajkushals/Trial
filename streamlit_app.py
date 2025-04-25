@@ -808,7 +808,7 @@ def main():
         st.session_state.show_generate_pdf_action5 = False
         st.session_state.show_generate_pdf_action6 = True
         
-    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/Qr.png", use_container_width=True)
+    st.sidebar.image("https://raw.githubusercontent.com/Shivarajkushals/Trial/main/new.png", use_container_width=True)
 
     if st.session_state.show_generate_pdf_action6:
         if st.button("Generate PDF for Sticker 6", key="generate_pdf_button_6"):
