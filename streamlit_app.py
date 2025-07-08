@@ -12,6 +12,329 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import io
 
+####################
+######  NEW  #######
+####################
+def generate_sticker_data_from_df(df, design_ids_input):
+    design_ids = [id.strip() for id in design_ids_input.split('\n') if id.strip()]
+    design_id_count = {id_: design_ids.count(id_) for id_ in design_ids}
+    found_count = {}
+    results = []
+    grouped_by_store = {}
+
+    # First group rows by DESIGNNO to allow faster lookup
+    design_map = {}
+    for _, row in df.iterrows():
+        design_no = str(row['DESIGNNO']).strip()
+        design_map.setdefault(design_no, []).append(row)
+
+    # Loop through design IDs in the order entered
+    for design_id in design_ids:
+        if design_id not in design_map:
+            continue
+
+        for row in design_map[design_id]:
+            if found_count.get(design_id, 0) >= design_id_count[design_id]:
+                break  # Already matched enough times
+
+            store_name = str(row['Store Name']).strip()
+
+            # Add store group if not yet initialized
+            if store_name not in grouped_by_store:
+                grouped_by_store[store_name] = []
+
+            # Append label entry to that store
+            grouped_by_store[store_name].append({
+                "barcode": row.get("Barcode Value", ""),
+                "text": row.get("Barcode Value", ""),
+                "desc": row.get("Item Alias Name", ""),
+                "spec": row.get("COLOR", ""),
+                "designNo": row.get("DESIGNNO", ""),
+                "remark": row.get("POLISH", ""),
+                "feature1": row.get("SIZE", ""),
+                "feature2": row.get("Loc Qty", ""),
+                "mpr": row.get("NEW MRP", ""),
+                "storeName": store_name,
+                "isStoreNameRow": False
+            })
+
+            found_count[design_id] = found_count.get(design_id, 0) + 1
+
+    # Now build final result with store headers and blank label if needed
+    for store_name, label_entries in grouped_by_store.items():
+        results.append({"storeName": store_name, "isStoreNameRow": True})
+        results.extend(label_entries)
+
+        if len(label_entries) % 2 == 0:
+            results.append({
+                "storeName": store_name,
+                "isStoreNameRow": False,  # Treat as blank label
+                "barcode": "",
+                "text": "",
+                "desc": "",
+                "spec": "",
+                "designNo": "",
+                "remark": "",
+                "feature1": "",
+                "feature2": "",
+                "mpr": ""
+            })
+
+    return results
+
+# -------------------------
+# HTML Rendering Function
+# -------------------------
+def render_sticker_html(results):
+    html = '<div id="output">'
+    store_groups = []
+    current_group = []
+
+    # Group entries by store
+    for entry in results:
+        if entry.get("isStoreNameRow"):
+            if current_group:
+                store_groups.append(current_group)
+            current_group = [entry]  # Start new group
+        else:
+            current_group.append(entry)
+    if current_group:
+        store_groups.append(current_group)
+
+    # Render each store group
+    for group in store_groups:
+        store_header = group[0]
+        label_rows = group[1:]
+
+        html += f"""
+        <table class='store-name-table'>
+            <tr><td class='store-name-cell'>Store: {store_header['storeName']}</td></tr>
+        </table>
+        """
+
+        for i, entry in enumerate(label_rows):
+            barcode_url = f"https://bwipjs-api.metafloor.com/?bcid=code128&text={entry.get('barcode', '')}"
+            table_class = "even" if (i + 1) % 2 == 0 else "odd"
+
+            html += f"""
+            <table class="{table_class}">
+                <tr class="row-1">
+                    <td colspan="2"><img id="barcodeImg" src="{barcode_url}" /></td>
+                </tr>
+                <tr class="row-2">
+                    <td colspan="2">{entry.get('text')}</td>
+                    <td class="rotated" rowspan="6">Kushal's</td>
+                </tr>
+                <tr class="row-3">
+                    <td colspan="2">{entry.get('desc')}</td>
+                </tr>
+                <tr class="row-4">
+                    <td>{entry.get('spec')}</td>
+                    <td></td>
+                </tr>
+                <tr class="row-5">
+                    <td>{entry.get('designNo')}</td>
+                    <td>{entry.get('remark')}</td>
+                </tr>
+                <tr class="row-6">
+                    <td>{entry.get('feature1')}</td>
+                    <td>S: {entry.get('feature2')}</td>
+                </tr>
+                <tr class="row-7">
+                    <td colspan="2">MRP: {entry.get('mpr')}.00</td>
+                </tr>
+            </table>
+            """
+
+    html += '</div>'
+    return html
+
+
+# -------------------------
+# CSS Styles (Exact Copy from Apps Script)
+# -------------------------
+CSS_TEMPLATE = """<style>
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #output, #output * {
+    visibility: visible;
+  }
+  #output {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+  table, td {
+    border: none;
+  }
+}
+
+table.even {
+  margin-left: 2.2cm;
+  margin-right: 2.2cm;
+}
+
+table.odd {
+  margin-left: 2.2cm;
+}
+
+#output {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+table {
+  width: auto;
+  height: 9cm;
+  border-collapse: collapse;
+  table-layout: auto;
+  margin-top: 0.3cm;
+  margin-bottom: 0.1cm;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-spacing: 30px;
+  padding-right: 100px;
+}
+
+td {
+  padding: 0px;
+  vertical-align: top;
+}
+
+td:not(:last-child) {
+  margin-right: 3cm;
+}
+
+td:nth-child(1),
+td:nth-child(2),
+td:nth-child(3),
+td:nth-child(4) {
+  width: auto;
+}
+
+.row-1 {
+  text-align: center;
+  vertical-align: bottom;
+  padding-top: 10px;
+}
+
+.row-2 {
+  text-align: center;
+  font-family: "Antonio", sans-serif;
+  font-weight: 700;
+  font-size: 43px;
+}
+
+.store {
+  text-align: left;
+  font-family: "Roboto", sans-serif;
+  font-weight: 650;
+  font-size: 40px;
+}
+
+.row-3 {
+  text-align: left;
+  font-size: 42px;
+  font-weight: 650;
+  font-family: "Roboto", sans-serif;
+}
+
+.row-4 {
+  text-align: left;
+  font-size: 42px;
+  font-weight: 650;
+}
+
+.row-5 {
+  text-align: left;
+  font-family: "Antonio", sans-serif;
+  font-size: 42px;
+  font-weight: 650;
+}
+
+.row-6 {
+  text-align: left;
+  font-family: "Roboto", sans-serif;
+  font-size: 42px;
+  font-weight: 650;
+}
+
+.row-7 {
+  text-align: left;
+  font-family: "Roboto Condensed", sans-serif;
+  vertical-align: middle;
+  font-weight: 900;
+  font-size: 50px;
+}
+
+.rotated {
+  writing-mode: vertical-rl;
+  font-family: "Roboto Condensed", sans-serif;
+  transform: rotate(180deg);
+  text-align: center;
+  font-weight: 900;
+  vertical-align: left;
+  font-size: 70px;
+  margin-left: 2.8cm;
+}
+
+#barcodeImg {
+  width: 9cm;
+  height: 1.8cm;
+}
+
+.store-name-table {
+  width: 9cm;
+  height: 9cm;
+  margin-left: 2cm;
+  margin-right: 4.5cm;
+  margin-top: 0.3cm;
+  margin-bottom: 0.4cm;
+  border-collapse: collapse;
+}
+
+.store-name-cell {
+  text-align: center;
+  padding-top: 10px;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 30px;
+  padding: 1px;
+  border: 2px solid black;
+  font-family: "Roboto Condensed", sans-serif;
+  font-weight: 650;
+}
+
+.merged-cell {
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 40px;
+  margin-right: 0cm;
+  margin-left: 0cm;
+  margin-top: 0.5cm;
+  grid-column: 1 / span 4;
+  grid-row: 1 / span 6;
+}
+</style>"""
+#--------------------------------------------------------------------------------#
 # Initialize session state
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
@@ -141,11 +464,19 @@ def save_to_pdf(data):
         for i, component in enumerate(components):
             if i < len(static_strings):
                 compartment_x = x_offset + i * compartment_width
-                pdf.setFont("Mitr-SemiBold", mm(16.92))
-                pdf.setFillColor(colors.HexColor("#b3b3b3"))
-                text_width = pdf.stringWidth(component, "Mitr-SemiBold", mm(16.92))
-                pdf.drawString(compartment_x + (compartment_width - text_width) / 2, 
-                               y_offset - compartment_height + mm(7.76), component)
+                font_size = 16.92
+                max_width = compartment_width - mm(2)
+
+                # Adjust font size to fit
+                while pdf.stringWidth(component, "Mitr-SemiBold", font_size) > max_width and font_size > 6:
+                    font_size -= 1
+
+        pdf.setFont("Mitr-SemiBold", font_size)
+        pdf.setFillColor(colors.HexColor("#b3b3b3"))
+        text_width = pdf.stringWidth(component, "Mitr-SemiBold", font_size)
+        pdf.drawString(compartment_x + (compartment_width - text_width) / 2, 
+                       y_offset - compartment_height + mm(7.76), component)
+
 
         # Move the x_offset for the next entity
         x_offset += total_width + margin_between_entities
@@ -414,14 +745,19 @@ def save_to_pdf3(data1):
         pdf.setFillColor(colors.HexColor("#FF6700"))  # Set background color
         pdf.rect(x_offset, line_y - mm(8), qr_box_width, mm(8), fill=1)  # Fill the rectangle
         
-        # Add value text below QR code
-        pdf.setFont("Mitr-SemiBold", 23)
-        pdf.setFillColor(colors.HexColor("#000000"))  # Set to blue
-        text_width = pdf.stringWidth(value, "Mitr-SemiBold", 23)
-        text_x = x_offset + (qr_box_width - text_width) / 2
-        text_y = y_offset - qr_box_height + mm(1.5)  # Adjusted to be below the line
-        pdf.drawString(text_x, text_y, value)
-        
+        # Determine if text needs wrapping
+        max_chars_per_line = 12
+        lines = [value[i:i+max_chars_per_line] for i in range(0, len(value), max_chars_per_line)]
+        font_size = 14
+        pdf.setFont("Mitr-SemiBold", font_size)
+        pdf.setFillColor(colors.HexColor("#000000"))
+
+        for idx, line in enumerate(lines[:2]):  # Limit to max 2 lines
+            text_width = pdf.stringWidth(line, "Mitr-SemiBold", font_size)
+            text_x = x_offset + (qr_box_width - text_width) / 2
+            text_y = y_offset - qr_box_height + mm(2.5) - (idx * mm(5))
+            pdf.drawString(text_x, text_y, line)
+
         x_offset += qr_box_width + margin
     
     pdf.save()
@@ -491,14 +827,21 @@ def save_to_pdf4(data1):
         qr_y = y_offset - qr_box_height + mm(37)
         pdf.drawImage(qr_image, qr_x, qr_y, width=qr_size, height=qr_size)
                 
-        # Add value text below QR code
-        pdf.setFont("Mitr-SemiBold", 12)
-        pdf.setFillColor(colors.HexColor("#000000"))  # Set to blue
-        text_width = pdf.stringWidth(value, "Mitr-SemiBold", 12)
+        # Auto-scaling the label text below QR code
+        font_size = 12
+        max_width = qr_box_width - mm(4)
+
+        # Reduce font size until it fits
+        while pdf.stringWidth(value, "Mitr-SemiBold", font_size) > max_width and font_size > 8:
+            font_size -= 1
+
+        pdf.setFont("Mitr-SemiBold", font_size)
+        pdf.setFillColor(colors.HexColor("#000000"))
+        text_width = pdf.stringWidth(value, "Mitr-SemiBold", font_size)
         text_x = x_offset + (qr_box_width - text_width) / 2
-        text_y = y_offset - qr_box_height + mm(31.5)  # Adjusted to be below the line
+        text_y = y_offset - qr_box_height + mm(31.5)
         pdf.drawString(text_x, text_y, value)
-        
+
         x_offset += qr_box_width + margin
     
     pdf.save()
@@ -561,13 +904,19 @@ def save_to_pdf5(data1):
         pdf.setFillColor(colors.HexColor("#FFD700"))  # Set background color
         pdf.rect(x_offset, line_y - mm(8), qr_box_width, mm(8), fill=1)  # Fill the rectangle
         
-        # Add value text below QR code
-        pdf.setFont("Mitr-SemiBold", 23)
-        pdf.setFillColor(colors.HexColor("#000000"))  # Set to blue
-        text_width = pdf.stringWidth(value, "Mitr-SemiBold", 23)
-        text_x = x_offset + (qr_box_width - text_width) / 2
-        text_y = y_offset - qr_box_height + mm(1.5)  # Adjusted to be below the line
-        pdf.drawString(text_x, text_y, value)
+        # Determine if text needs wrapping
+        max_chars_per_line = 12
+        lines = [value[i:i+max_chars_per_line] for i in range(0, len(value), max_chars_per_line)]
+        font_size = 14
+        pdf.setFont("Mitr-SemiBold", font_size)
+        pdf.setFillColor(colors.HexColor("#000000"))
+
+        for idx, line in enumerate(lines[:2]):  # Limit to max 2 lines
+            text_width = pdf.stringWidth(line, "Mitr-SemiBold", font_size)
+            text_x = x_offset + (qr_box_width - text_width) / 2
+            text_y = y_offset - qr_box_height + mm(2.5) - (idx * mm(5))
+            pdf.drawString(text_x, text_y, line)
+
         
         x_offset += qr_box_width + margin
     
@@ -575,23 +924,67 @@ def save_to_pdf5(data1):
     pdf_buffer.seek(0)  # Move to the beginning of the BytesIO buffer
     return pdf_buffer.getvalue()  # Return the PDF data
 
+#######################
+####### # NEW  ########
+#######################
+def sample_page():
+    st.title("📄 Sample Page: Excel-Based Label Generator")
+
+    uploaded_file = st.file_uploader("📤 Upload Excel File", type=["xlsx"])
+
+    if uploaded_file:
+        try:
+            df = pd.read_excel(uploaded_file)
+            st.success("✅ File uploaded successfully!")
+            st.subheader("Excel Data Preview")
+            st.dataframe(df)
+
+            design_ids = st.text_area("🎯 Enter DESIGNNOs (one per line)", height=150)
+
+            if st.button("🚀 Generate Stickers"):
+                results = generate_sticker_data_from_df(df, design_ids)
+                rendered_html = render_sticker_html(results)
+
+                full_page = f"""
+                <html>
+                <head>{CSS_TEMPLATE}</head>
+                <body>
+                    <button onclick="window.print()" style="margin:20px;padding:10px;">🖨️ Print</button>
+                    {rendered_html}
+                </body>
+                </html>
+                """
+                st.subheader("🔖 Sticker Preview")
+                st.components.v1.html(full_page, height=2000, scrolling=True)
+
+        except Exception as e:
+            st.error(f"❌ Failed to read Excel file: {e}")
+    else:
+        st.info("📄 Please upload an Excel file to begin.")
+#------------------------------------------------------------------------------#
+
 def main():
     if not st.session_state.authenticated:
         login_page()
         return
-    
-    # Add logout button in sidebar
+
     if st.sidebar.button("Logout"):
         st.session_state.authenticated = False
         st.rerun()
-    
-    st.title("PDF Generator")
 
+    page = st.sidebar.selectbox("Navigate to:", [
+        "Sticker Generator",
+        "Sample Page"
+    ])
+
+    if page == "Sample Page":
+        sample_page()
+        return
+
+    # --- Sticker Generator Page ---
+    st.title("PDF Generator")
     st.subheader("The file expected to load should have a single column of data in first column with a header")
-    
     uploaded_files = st.file_uploader("Upload CSV or Excel files", type=["csv", "xlsx"], accept_multiple_files=True)
-    
-    # Sidebar for button inputs
     st.sidebar.header("Choose Actions")
 
     # Initialize session state variables
