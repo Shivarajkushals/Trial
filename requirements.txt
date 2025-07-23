@@ -61,4 +61,5 @@ tzdata==2025.2
 urllib3==2.4.0
 watchdog==6.0.0
 setuptools>=60.0.0
-barcode
+barcode>=0.15.1
+
