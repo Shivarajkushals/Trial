@@ -86,254 +86,105 @@ def generate_sticker_data_from_df(df, design_ids_input):
 # HTML Rendering Function
 # -------------------------
 def render_sticker_html(results):
-    html = '<div id="output">'
-    store_groups = []
-    current_group = []
+    from barcode import Code128
+    from barcode.writer import ImageWriter
+    import base64
+    from io import BytesIO
 
-    # Group entries by store
-    for entry in results:
-        if entry.get("isStoreNameRow"):
-            if current_group:
-                store_groups.append(current_group)
-            current_group = [entry]  # Start new group
-        else:
-            current_group.append(entry)
-    if current_group:
-        store_groups.append(current_group)
+    stickers = []
 
-    # Render each store group
-    for group in store_groups:
-        store_header = group[0]
-        label_rows = group[1:]
+    for _, row in results.iterrows():
+        # Generate barcode image in memory
+        barcode_value = row["barcode"]
+        barcode = Code128(str(barcode_value), writer=ImageWriter(), add_checksum=False)
+        buffer = BytesIO()
+        barcode.write(buffer, options={"module_height": 10.0, "module_width": 0.2, "font_size": 8})
+        barcode_base64 = base64.b64encode(buffer.getvalue()).decode()
 
-        html += f"""
-        <table class='store-name-table'>
-            <tr><td class='store-name-cell'>Store: {store_header['storeName']}</td></tr>
-        </table>
+        # Build HTML
+        html = f"""
+        <div class="sticker">
+          <div class="store-name">{row['stores']}</div>
+          <div class="barcode">
+            <img id="barcodeImg" src="data:image/png;base64,{barcode_base64}">
+          </div>
+          <table class="info-table">
+            <tr>
+              <td><strong>Design:</strong> {row['design_no']}</td>
+              <td><strong>Size:</strong> {row['size']}</td>
+              <td><strong>Qty:</strong> {row['qty']}</td>
+            </tr>
+            <tr>
+              <td><strong>Color:</strong> {row['color']}</td>
+              <td><strong>MRP:</strong> ₹{row['rate']}</td>
+              <td><strong>HSN:</strong> {row['hsn']}</td>
+            </tr>
+          </table>
+        </div>
         """
+        stickers.append(html)
 
-        for i, entry in enumerate(label_rows):
-            barcode_url = f"https://bwipjs-api.metafloor.com/?bcid=code128&text={entry.get('barcode', '')}"
-            table_class = "even" if (i + 1) % 2 == 0 else "odd"
-
-            html += f"""
-            <table class="{table_class}">
-                <tr class="row-1">
-                    <td colspan="2"><img id="barcodeImg" src="{barcode_url}" /></td>
-                </tr>
-                <tr class="row-2">
-                    <td colspan="2">{entry.get('text')}</td>
-                    <td class="rotated" rowspan="6">Kushal's</td>
-                </tr>
-                <tr class="row-3">
-                    <td colspan="2">{entry.get('desc')}</td>
-                </tr>
-                <tr class="row-4">
-                    <td>{entry.get('spec')}</td>
-                    <td></td>
-                </tr>
-                <tr class="row-5">
-                    <td>{entry.get('designNo')}</td>
-                    <td>{entry.get('remark')}</td>
-                </tr>
-                <tr class="row-6">
-                    <td>{entry.get('feature1')}</td>
-                    <td>S: {entry.get('feature2')}</td>
-                </tr>
-                <tr class="row-7">
-                    <td colspan="2">MRP: {entry.get('mpr')}.00</td>
-                </tr>
-            </table>
-            """
-
-    html += '</div>'
-    return html
-
+    # Combine all HTML
+    return CSS_TEMPLATE + "".join(stickers)
 
 # -------------------------
 # CSS Styles (Exact Copy from Apps Script)
 # -------------------------
-CSS_TEMPLATE = """<style>
-@media print {
-  body * {
-    visibility: hidden;
+CSS_TEMPLATE = """
+<style>
+  @media print {
+    html, body {
+      width: 10cm;
+      height: 5cm;
+      margin: 0;
+      padding: 0;
+    }
+
+    .sticker {
+      page-break-after: always;
+    }
   }
-  #output, #output * {
-    visibility: visible;
-  }
-  #output {
-    position: absolute;
-    left: 0;
-    top: 0;
+
+  .sticker {
+    width: 10cm;
+    height: 5cm;
+    border: 1px solid black;
+    box-sizing: border-box;
     margin: 0;
-    padding: 0;
-    width: 100vw;
+    padding: 0.2cm;
+    font-family: Arial, sans-serif;
   }
-  html, body {
-    margin: 0;
-    padding: 0;
+
+  .barcode {
+    text-align: center;
+    margin-top: 0.2cm;
+  }
+
+  #barcodeImg {
+    width: 8cm;
+    height: 1.2cm;
+  }
+
+  .store-name {
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0.2cm;
+  }
+
+  .info-table {
     width: 100%;
-    height: 100%;
+    font-size: 16px;
+    border-collapse: collapse;
   }
-  table, td {
-    border: none;
+
+  .info-table td {
+    padding: 0;
   }
-}
 
-table.even {
-  margin-left: 2.2cm;
-  margin-right: 2.2cm;
-}
+</style>
+"""
 
-table.odd {
-  margin-left: 2.2cm;
-}
-
-#output {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-body {
-  font-family: "Roboto", sans-serif;
-  font-weight: 600;
-  font-style: normal;
-}
-
-table {
-  width: auto;
-  height: 9cm;
-  border-collapse: collapse;
-  table-layout: auto;
-  margin-top: 0.3cm;
-  margin-bottom: 0.1cm;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  border-spacing: 30px;
-  padding-right: 100px;
-}
-
-td {
-  padding: 0px;
-  vertical-align: top;
-}
-
-td:not(:last-child) {
-  margin-right: 3cm;
-}
-
-td:nth-child(1),
-td:nth-child(2),
-td:nth-child(3),
-td:nth-child(4) {
-  width: auto;
-}
-
-.row-1 {
-  text-align: center;
-  vertical-align: bottom;
-  padding-top: 10px;
-}
-
-.row-2 {
-  text-align: center;
-  font-family: "Antonio", sans-serif;
-  font-weight: 700;
-  font-size: 43px;
-}
-
-.store {
-  text-align: left;
-  font-family: "Roboto", sans-serif;
-  font-weight: 650;
-  font-size: 40px;
-}
-
-.row-3 {
-  text-align: left;
-  font-size: 42px;
-  font-weight: 650;
-  font-family: "Roboto", sans-serif;
-}
-
-.row-4 {
-  text-align: left;
-  font-size: 42px;
-  font-weight: 650;
-}
-
-.row-5 {
-  text-align: left;
-  font-family: "Antonio", sans-serif;
-  font-size: 42px;
-  font-weight: 650;
-}
-
-.row-6 {
-  text-align: left;
-  font-family: "Roboto", sans-serif;
-  font-size: 42px;
-  font-weight: 650;
-}
-
-.row-7 {
-  text-align: left;
-  font-family: "Roboto Condensed", sans-serif;
-  vertical-align: middle;
-  font-weight: 900;
-  font-size: 50px;
-}
-
-.rotated {
-  writing-mode: vertical-rl;
-  font-family: "Roboto Condensed", sans-serif;
-  transform: rotate(180deg);
-  text-align: center;
-  font-weight: 900;
-  vertical-align: left;
-  font-size: 70px;
-  margin-left: 2.8cm;
-}
-
-#barcodeImg {
-  width: 9cm;
-  height: 1.8cm;
-}
-
-.store-name-table {
-  width: 9cm;
-  height: 9cm;
-  margin-left: 2cm;
-  margin-right: 4.5cm;
-  margin-top: 0.3cm;
-  margin-bottom: 0.4cm;
-  border-collapse: collapse;
-}
-
-.store-name-cell {
-  text-align: center;
-  padding-top: 10px;
-  vertical-align: middle;
-  font-weight: bold;
-  font-size: 30px;
-  padding: 1px;
-  border: 2px solid black;
-  font-family: "Roboto Condensed", sans-serif;
-  font-weight: 650;
-}
-
-.merged-cell {
-  text-align: center;
-  vertical-align: middle;
-  font-weight: bold;
-  font-size: 40px;
-  margin-right: 0cm;
-  margin-left: 0cm;
-  margin-top: 0.5cm;
-  grid-column: 1 / span 4;
-  grid-row: 1 / span 6;
-}
-</style>"""
 #--------------------------------------------------------------------------------#
 # Initialize session state
 if 'authenticated' not in st.session_state:
