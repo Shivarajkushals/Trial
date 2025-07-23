@@ -12,7 +12,6 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import io
 
-
 ####################
 ######  NEW  #######
 ####################
@@ -96,13 +95,13 @@ def render_sticker_html(results):
         if entry.get("isStoreNameRow"):
             if current_group:
                 store_groups.append(current_group)
-            current_group = [entry]
+            current_group = [entry]  # Start new group
         else:
             current_group.append(entry)
     if current_group:
         store_groups.append(current_group)
 
-    # Render each group
+    # Render each store group
     for group in store_groups:
         store_header = group[0]
         label_rows = group[1:]
@@ -114,9 +113,7 @@ def render_sticker_html(results):
         """
 
         for i, entry in enumerate(label_rows):
-            barcode = entry.get('barcode', '')
-            barcode_url = f"https://bwipjs-api.metafloor.com/?bcid=code128&text={barcode}&scale=2&height=10&includetext"
-
+            barcode_url = f"https://bwipjs-api.metafloor.com/?bcid=code128&text={entry.get('barcode', '')}"
             table_class = "even" if (i + 1) % 2 == 0 else "odd"
 
             html += f"""
@@ -144,7 +141,7 @@ def render_sticker_html(results):
                     <td>S: {entry.get('feature2')}</td>
                 </tr>
                 <tr class="row-7">
-                    <td colspan="2">MRP: ₹{entry.get('mpr')}.00</td>
+                    <td colspan="2">MRP: {entry.get('mpr')}.00</td>
                 </tr>
             </table>
             """
@@ -156,61 +153,187 @@ def render_sticker_html(results):
 # -------------------------
 # CSS Styles (Exact Copy from Apps Script)
 # -------------------------
-CSS_TEMPLATE = """
-<style>
-  @media print {
-    html, body {
-      width: 10cm;
-      height: 5cm;
-      margin: 0;
-      padding: 0;
-    }
-
-    .sticker {
-      page-break-after: always;
-    }
+CSS_TEMPLATE = """<style>
+@media print {
+  body * {
+    visibility: hidden;
   }
-
-  .sticker {
-    width: 10cm;
-    height: 5cm;
-    border: 1px solid black;
-    box-sizing: border-box;
+  #output, #output * {
+    visibility: visible;
+  }
+  #output {
+    position: absolute;
+    left: 0;
+    top: 0;
     margin: 0;
-    padding: 0.2cm;
-    font-family: Arial, sans-serif;
-  }
-
-  .barcode {
-    text-align: center;
-    margin-top: 0.2cm;
-  }
-
-  #barcodeImg {
-    width: 8cm;
-    height: 1.2cm;
-  }
-
-  .store-name {
-    font-size: 22px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 0.2cm;
-  }
-
-  .info-table {
-    width: 100%;
-    font-size: 16px;
-    border-collapse: collapse;
-  }
-
-  .info-table td {
     padding: 0;
+    width: 100vw;
   }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+  table, td {
+    border: none;
+  }
+}
 
-</style>
-"""
+table.even {
+  margin-left: 2.2cm;
+  margin-right: 2.2cm;
+}
 
+table.odd {
+  margin-left: 2.2cm;
+}
+
+#output {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+table {
+  width: auto;
+  height: 9cm;
+  border-collapse: collapse;
+  table-layout: auto;
+  margin-top: 0.3cm;
+  margin-bottom: 0.1cm;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-spacing: 30px;
+  padding-right: 100px;
+}
+
+td {
+  padding: 0px;
+  vertical-align: top;
+}
+
+td:not(:last-child) {
+  margin-right: 3cm;
+}
+
+td:nth-child(1),
+td:nth-child(2),
+td:nth-child(3),
+td:nth-child(4) {
+  width: auto;
+}
+
+.row-1 {
+  text-align: center;
+  vertical-align: bottom;
+  padding-top: 10px;
+}
+
+.row-2 {
+  text-align: center;
+  font-family: "Antonio", sans-serif;
+  font-weight: 700;
+  font-size: 43px;
+}
+
+.store {
+  text-align: left;
+  font-family: "Roboto", sans-serif;
+  font-weight: 650;
+  font-size: 40px;
+}
+
+.row-3 {
+  text-align: left;
+  font-size: 42px;
+  font-weight: 650;
+  font-family: "Roboto", sans-serif;
+}
+
+.row-4 {
+  text-align: left;
+  font-size: 42px;
+  font-weight: 650;
+}
+
+.row-5 {
+  text-align: left;
+  font-family: "Antonio", sans-serif;
+  font-size: 42px;
+  font-weight: 650;
+}
+
+.row-6 {
+  text-align: left;
+  font-family: "Roboto", sans-serif;
+  font-size: 42px;
+  font-weight: 650;
+}
+
+.row-7 {
+  text-align: left;
+  font-family: "Roboto Condensed", sans-serif;
+  vertical-align: middle;
+  font-weight: 900;
+  font-size: 50px;
+}
+
+.rotated {
+  writing-mode: vertical-rl;
+  font-family: "Roboto Condensed", sans-serif;
+  transform: rotate(180deg);
+  text-align: center;
+  font-weight: 900;
+  vertical-align: left;
+  font-size: 70px;
+  margin-left: 2.8cm;
+}
+
+#barcodeImg {
+  width: 9cm;
+  height: 1.8cm;
+}
+
+.store-name-table {
+  width: 9cm;
+  height: 9cm;
+  margin-left: 2cm;
+  margin-right: 4.5cm;
+  margin-top: 0.3cm;
+  margin-bottom: 0.4cm;
+  border-collapse: collapse;
+}
+
+.store-name-cell {
+  text-align: center;
+  padding-top: 10px;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 30px;
+  padding: 1px;
+  border: 2px solid black;
+  font-family: "Roboto Condensed", sans-serif;
+  font-weight: 650;
+}
+
+.merged-cell {
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 40px;
+  margin-right: 0cm;
+  margin-left: 0cm;
+  margin-top: 0.5cm;
+  grid-column: 1 / span 4;
+  grid-row: 1 / span 6;
+}
+</style>"""
 #--------------------------------------------------------------------------------#
 # Initialize session state
 if 'authenticated' not in st.session_state:
