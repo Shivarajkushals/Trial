@@ -11,8 +11,6 @@ from io import BytesIO
 from reportlab.lib.utils import ImageReader
 from PIL import Image
 import io
-from barcode import Code128
-from barcode.writer import ImageWriter
 
 
 ####################
