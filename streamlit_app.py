@@ -939,7 +939,7 @@ def sample_page():
             st.subheader("Excel Data Preview")
             st.dataframe(df)
 
-            design_ids = st.text_area("🎯 Enter DESIGNNOs (one per line)", height=150)
+            design_ids = st.text_area("🎯 Enter DESIGNNOs (one per line)", height=68)
 
             if st.button("🚀 Generate Stickers"):
                 results = generate_sticker_data_from_df(df, design_ids)
