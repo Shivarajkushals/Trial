@@ -87,46 +87,71 @@ def generate_sticker_data_from_df(df, design_ids_input):
 # HTML Rendering Function
 # -------------------------
 def render_sticker_html(results):
-    from barcode import Code128
-    from barcode.writer import ImageWriter
-    import base64
-    from io import BytesIO
+    html = '<div id="output">'
+    store_groups = []
+    current_group = []
 
-    stickers = []
+    # Group entries by store
+    for entry in results:
+        if entry.get("isStoreNameRow"):
+            if current_group:
+                store_groups.append(current_group)
+            current_group = [entry]
+        else:
+            current_group.append(entry)
+    if current_group:
+        store_groups.append(current_group)
 
-    for _, row in results.iterrows():
-        # Generate barcode image in memory
-        barcode_value = row["barcode"]
-        barcode = Code128(str(barcode_value), writer=ImageWriter(), add_checksum=False)
-        buffer = BytesIO()
-        barcode.write(buffer, options={"module_height": 10.0, "module_width": 0.2, "font_size": 8})
-        barcode_base64 = base64.b64encode(buffer.getvalue()).decode()
+    # Render each group
+    for group in store_groups:
+        store_header = group[0]
+        label_rows = group[1:]
 
-        # Build HTML
-        html = f"""
-        <div class="sticker">
-          <div class="store-name">{row['stores']}</div>
-          <div class="barcode">
-            <img id="barcodeImg" src="data:image/png;base64,{barcode_base64}">
-          </div>
-          <table class="info-table">
-            <tr>
-              <td><strong>Design:</strong> {row['design_no']}</td>
-              <td><strong>Size:</strong> {row['size']}</td>
-              <td><strong>Qty:</strong> {row['qty']}</td>
-            </tr>
-            <tr>
-              <td><strong>Color:</strong> {row['color']}</td>
-              <td><strong>MRP:</strong> ₹{row['rate']}</td>
-              <td><strong>HSN:</strong> {row['hsn']}</td>
-            </tr>
-          </table>
-        </div>
+        html += f"""
+        <table class='store-name-table'>
+            <tr><td class='store-name-cell'>Store: {store_header['storeName']}</td></tr>
+        </table>
         """
-        stickers.append(html)
 
-    # Combine all HTML
-    return CSS_TEMPLATE + "".join(stickers)
+        for i, entry in enumerate(label_rows):
+            barcode = entry.get('barcode', '')
+            barcode_url = f"https://bwipjs-api.metafloor.com/?bcid=code128&text={barcode}&scale=2&height=10&includetext"
+
+            table_class = "even" if (i + 1) % 2 == 0 else "odd"
+
+            html += f"""
+            <table class="{table_class}">
+                <tr class="row-1">
+                    <td colspan="2"><img id="barcodeImg" src="{barcode_url}" /></td>
+                </tr>
+                <tr class="row-2">
+                    <td colspan="2">{entry.get('text')}</td>
+                    <td class="rotated" rowspan="6">Kushal's</td>
+                </tr>
+                <tr class="row-3">
+                    <td colspan="2">{entry.get('desc')}</td>
+                </tr>
+                <tr class="row-4">
+                    <td>{entry.get('spec')}</td>
+                    <td></td>
+                </tr>
+                <tr class="row-5">
+                    <td>{entry.get('designNo')}</td>
+                    <td>{entry.get('remark')}</td>
+                </tr>
+                <tr class="row-6">
+                    <td>{entry.get('feature1')}</td>
+                    <td>S: {entry.get('feature2')}</td>
+                </tr>
+                <tr class="row-7">
+                    <td colspan="2">MRP: ₹{entry.get('mpr')}.00</td>
+                </tr>
+            </table>
+            """
+
+    html += '</div>'
+    return html
+
 
 # -------------------------
 # CSS Styles (Exact Copy from Apps Script)
