@@ -63,3 +63,4 @@ watchdog==6.0.0
 setuptools>=60.0.0
 barcode>=0.15.1
 python-barcode
+win32print
